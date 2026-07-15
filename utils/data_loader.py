@@ -6,10 +6,11 @@ GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1eziqvaIzCcnkp-VZhgrp
 @st.cache_data(ttl=60)
 def load_data():
 
-    df = pd.read_csv(GOOGLE_SHEET_URL, skiprows=1)
-
-    st.write("RAW DATA")
-    st.write(df.head(10))
+    df = pd.read_csv(
+        GOOGLE_SHEET_URL,
+        skiprows=1,
+        header=None      # <-- IMPORTANT
+    )
 
     df.columns = [
         "S.No",
@@ -23,7 +24,21 @@ def load_data():
         "Amount"
     ]
 
-    st.write("RENAMED DATA")
-    st.write(df.head(10))
+    # Header row remove
+    df = df[df["S.No"] != "S.No"]
+
+    numeric_cols = [
+        "NOIDA",
+        "LUCKNOW",
+        "JAIPUR",
+        "INDORE",
+        "TOTAL",
+        "Amount"
+    ]
+
+    for col in numeric_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+
+    df = df.reset_index(drop=True)
 
     return df
