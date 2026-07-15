@@ -25,7 +25,7 @@ st.sidebar.success("🟢 Live Google Sheet Connected")
 
 st.markdown("""
 # 🎓 Admission Analytics Platform
-Live Google Sheet Dashboard
+### Live Google Sheet Dashboard
 """)
 
 st.divider()
@@ -38,69 +38,133 @@ total_admission = int(df["TOTAL"].sum())
 
 total_amount = int(df["Amount"].sum())
 
-top_owner = df.loc[df["TOTAL"].idxmax(), "Owner"]
+# Highest Incentive
+top_row = df.loc[df["Amount"].idxmax()]
 
-c1,c2,c3,c4 = st.columns(4)
+top_owner = top_row["Owner"]
+
+top_amount = int(top_row["Amount"])
+
+best_campus = (
+    df.groupby("CAMPUS")["TOTAL"]
+      .sum()
+      .idxmax()
+)
+
+c1, c2, c3, c4, c5 = st.columns(5)
 
 c1.metric("👥 Total Owners", total_owner)
 
 c2.metric("🎯 Admissions", total_admission)
 
-c3.metric("💰 Incentive", f"₹ {total_amount:,.0f}")
+c3.metric(
+    "💰 Total Incentive",
+    f"₹ {total_amount:,.0f}"
+)
 
-c4.metric("🏆 Top Performer", top_owner)
+c4.metric(
+    "🏆 Top Performer",
+    top_owner,
+    f"₹ {top_amount:,.0f}"
+)
+
+c5.metric(
+    "🏢 Best Campus",
+    best_campus
+)
 
 st.divider()
 
-# ---------------- CHARTS ----------------
+st.success(
+    f"🎉 Congratulations **{top_owner}** for earning the highest incentive of **₹ {top_amount:,.0f}**."
+)
 
-left,right = st.columns(2)
+st.divider()
+
+# ---------------- Charts ----------------
+
+left, right = st.columns(2)
 
 with left:
 
-    top5 = df.sort_values("TOTAL", ascending=False).head(5)
+    top5 = (
+        df.sort_values(
+            "Amount",
+            ascending=False
+        )
+        .head(5)
+    )
 
     fig = px.bar(
         top5,
         x="Owner",
-        y="TOTAL",
-        title="Top 5 Performers",
-        text="TOTAL",
-        color="TOTAL"
+        y="Amount",
+        text="Amount",
+        color="Amount",
+        title="🏆 Top 5 Incentive Earners"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    fig.update_layout(
+        xaxis_title="Owner",
+        yaxis_title="Incentive"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
 with right:
 
-    campus = df.groupby("CAMPUS")["TOTAL"].sum().reset_index()
+    campus = (
+        df.groupby("CAMPUS")["TOTAL"]
+          .sum()
+          .reset_index()
+    )
 
     fig2 = px.pie(
         campus,
         names="CAMPUS",
         values="TOTAL",
-        hole=.45,
-        title="Campus Contribution"
+        hole=.55,
+        title="🏢 Campus Contribution"
     )
 
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(
+        fig2,
+        use_container_width=True
+    )
 
 st.divider()
 
-# ---------------- LEADERBOARD ----------------
+# ---------------- Leaderboard ----------------
 
-st.subheader("🏆 Leaderboard")
+st.subheader("🏆 Incentive Leaderboard")
 
-leaderboard = df.sort_values("TOTAL", ascending=False)
+leaderboard = (
+    df.sort_values(
+        "Amount",
+        ascending=False
+    )
+    .reset_index(drop=True)
+)
+
+leaderboard["Rank"] = leaderboard.index + 1
 
 st.dataframe(
     leaderboard[
         [
+            "Rank",
             "Owner",
             "CAMPUS",
             "TOTAL",
             "Amount"
         ]
     ],
-    use_container_width=True
+    use_container_width=True,
+    hide_index=True
 )
+
+st.divider()
+
+st.caption("Developed by Himanshu Kumar | Admission Analytics Platform")
