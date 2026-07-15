@@ -51,7 +51,7 @@ best_campus = (
       .idxmax()
 )
 
-c1, c2, c3, c4, c5 = st.columns(5)
+c1, c2, c3, c4, c5 = st.columns([1, 1, 1.3, 2.3, 1.2])
 
 c1.metric("👥 Total Owners", total_owner)
 
